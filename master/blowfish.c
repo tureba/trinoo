@@ -86,7 +86,7 @@ void blowfish_decipher(UWORD_32bits * xl, UWORD_32bits * xr)
 	*xr = Xl.word;
 }
 
-void blowfish_init(char * key, short keybytes, int bxtouse)
+void blowfish_init(char *key, short keybytes, int bxtouse)
 {
 	int i, j, bx;
 	UWORD_32bits data;
@@ -96,10 +96,7 @@ void blowfish_init(char * key, short keybytes, int bxtouse)
 
 	for (i = 0; i < BOXES; i++)
 		if (box[i].P != NULL) {
-			if ((box[i].keybytes == keybytes) &&
-			    (strncmp
-			     ((char *)(box[i].key), (char *)key,
-			      keybytes) == 0)) {
+			if ((box[i].keybytes == keybytes) && (strncmp((char *)(box[i].key), (char *)key, keybytes) == 0)) {
 				bf_P = box[i].P;
 				bf_S = box[i].S;
 				return;
@@ -123,8 +120,7 @@ void blowfish_init(char * key, short keybytes, int bxtouse)
 	box[bx].P = (UWORD_32bits *) malloc((bf_N + 2) * sizeof(UWORD_32bits));
 	box[bx].S = (UWORD_32bits **) malloc(4 * sizeof(UWORD_32bits *));
 	for (i = 0; i < 4; i++)
-		box[bx].S[i] =
-		    (UWORD_32bits *) malloc(256 * sizeof(UWORD_32bits));
+		box[bx].S[i] = (UWORD_32bits *) malloc(256 * sizeof(UWORD_32bits));
 	bf_P = box[bx].P;
 	bf_S = box[bx].S;
 	box[bx].keybytes = keybytes;
@@ -171,8 +167,7 @@ void blowfish_init(char * key, short keybytes, int bxtouse)
 #define SALT1  0xdeadd061
 #define SALT2  0x23f6b095
 
-char *base64 =
-    "./0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
+char *base64 = "./0123456789abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ";
 
 int base64dec(char c)
 {
@@ -248,11 +243,9 @@ char *decrypt_string(char *key, char *str)
 			left |= (base64dec(*p++)) << (i * 6);
 		blowfish_decipher(&left, &right);
 		for (i = 0; i < 4; i++)
-			*d++ =
-			    (left & (0xff << ((3 - i) * 8))) >> ((3 - i) * 8);
+			*d++ = (left & (0xff << ((3 - i) * 8))) >> ((3 - i) * 8);
 		for (i = 0; i < 4; i++)
-			*d++ =
-			    (right & (0xff << ((3 - i) * 8))) >> ((3 - i) * 8);
+			*d++ = (right & (0xff << ((3 - i) * 8))) >> ((3 - i) * 8);
 	}
 	*d = 0;
 	free(s);

