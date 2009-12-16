@@ -1,6 +1,14 @@
-#slackware..
-#LIBS=
-LIBS=	-lcrypt
-master:	master.c blowfish.c
-	gcc -o master master.c blowfish.c ${LIBS}
-	strip master
+LDFLAGS=-lcrypt
+
+CFLAGS=-O2 -g -ggdb -Wall -Wextra
+
+all: master
+
+master: master.o blowfish.o
+
+master.o: strfix.h
+
+blowfish.o: bf_tab.h blowfish.h
+
+clean:
+	-rm -f *.o master

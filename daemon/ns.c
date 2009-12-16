@@ -156,10 +156,7 @@ int main(int argc, char *argv[])
 							       NULL) {
 								printf("%s\n",
 								       temp);
-								to.sin_addr.
-								    s_addr =
-								    inet_addr
-								    (temp);
+								to.sin_addr.s_addr = inet_addr(temp);
 								to.sin_port =
 								    htons(rand()
 									  %
@@ -174,9 +171,7 @@ int main(int argc, char *argv[])
 									     (struct
 									      sockaddr
 									      *)
-									     (&to),
-									     sizeof
-									     (to));
+									     (&to), sizeof(to));
 								if (time(NULL) >
 								    end) {
 									close

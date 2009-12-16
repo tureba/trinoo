@@ -1,3 +1,5 @@
+#include <string.h>
+
 #include "blowfish.h"
 #include "bf_tab.h"
 
@@ -84,10 +86,9 @@ void blowfish_decipher(UWORD_32bits * xl, UWORD_32bits * xr)
 	*xr = Xl.word;
 }
 
-void blowfish_init(UBYTE_08bits * key, short keybytes, int bxtouse)
+void blowfish_init(char * key, short keybytes, int bxtouse)
 {
 	int i, j, bx;
-	time_t lowest;
 	UWORD_32bits data;
 	UWORD_32bits datal;
 	UWORD_32bits datar;
