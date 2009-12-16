@@ -1,6 +1,11 @@
+export LDFLAGS=-lcrypt
+
+export CFLAGS=-O2 -g -ggdb -Wall -Wextra
 
 all:
-	make -C master all
+	-cd master && $(MAKE) all
+	-cd daemon && $(MAKE) all
 
 clean:
-	make -C master clean
+	-cd master && $(MAKE) clean
+	-cd daemon && $(MAKE) clean

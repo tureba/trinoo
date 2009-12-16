@@ -1,6 +1,3 @@
-LDFLAGS=-lcrypt
-
-CFLAGS=-O2 -g -ggdb -Wall -Wextra
 
 all: master
 
