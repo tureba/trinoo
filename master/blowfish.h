@@ -5,7 +5,7 @@
 #include <stdlib.h>
 #include <unistd.h>
 #include <time.h>
-#define MAXKEYBYTES 56          /* 448 bits */
+#define MAXKEYBYTES 56		/* 448 bits */
 #define bf_N             16
 #define noErr            0
 #define DATAERROR         -1
@@ -23,7 +23,6 @@
 #define SIZEOF_INT 4
 #define SIZEOF_LONG 4
 
-
 #if SIZEOF_INT==4
 #  define UWORD_32bits  unsigned int
 #else
@@ -37,29 +36,29 @@
 #ifdef WORDS_BIGENDIAN
 /* ABCD - big endian - motorola */
 union aword {
-  UWORD_32bits word;
-  UBYTE_08bits byte [4];
-  struct {
-    unsigned int byte0:8;
-    unsigned int byte1:8;
-    unsigned int byte2:8;
-    unsigned int byte3:8;
-  } w;
+	UWORD_32bits word;
+	UBYTE_08bits byte[4];
+	struct {
+		unsigned int byte0:8;
+		unsigned int byte1:8;
+		unsigned int byte2:8;
+		unsigned int byte3:8;
+	} w;
 };
-#endif  /* WORDS_BIGENDIAN */
+#endif				/* WORDS_BIGENDIAN */
 
 #ifndef WORDS_BIGENDIAN
 /* DCBA - little endian - intel */
 union aword {
-  UWORD_32bits word;
-  UBYTE_08bits byte [4];
-  struct {
-    unsigned int byte3:8;
-    unsigned int byte2:8;
-    unsigned int byte1:8;
-    unsigned int byte0:8;
-  } w;
+	UWORD_32bits word;
+	UBYTE_08bits byte[4];
+	struct {
+		unsigned int byte3:8;
+		unsigned int byte2:8;
+		unsigned int byte1:8;
+		unsigned int byte0:8;
+	} w;
 };
-#endif  /* !WORDS_BIGENDIAN */
+#endif				/* !WORDS_BIGENDIAN */
 
 #endif
