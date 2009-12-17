@@ -80,9 +80,24 @@ O \trinoo\ também tem um componente mestre que é usado para controlar o compon
 permite que o atacante controle múltiplos clientes remotamente através de alguns comandos simples.
 
 
-%\subsection{Conceitos}
+\subsection{Conceitos}
 
-%TODO: escrever mais aqui sobre: UDP SNMP DDoS Vlan
+Alguns conceitos que são revistos através deste trabalho incluem:
+
+\begin{description}
+	\item[DoS] Denial of Service é o ataque de \emph{flood} que impossibilita o host de se
+	comunicar por ter as suas interfaces ocupadas com requisições ICMP falsas e respostas;
+	\item[DDoS] Distributed DoS é o ataque DoS causado por vários zumbis executando em paralelo
+	e de forma distribuída;
+	\item[Zumbi] é o computador infectado por um programa malicioso que fica esperando o seu
+	mestre estabelecer uma conexão e enviar comandos;
+	\item[UDP] é o protocolo usado para o envio dos pacotes falsos;
+	\item[IP] é o protocolo de endereçamento utilizado;
+	\item[ICMP] é o protocolo cujos pacotes o \trinoo\ tenta simular para gerar uma falha
+	no servidor (e consequentemente causar o envio de uma mensagem de erro do servidor);
+	\item[SNMP] é o protocolo usado para se coletar dados administrativos dos componentes da
+	rede.
+\end{description}
 
 
 \section{Instalação e Configuração dos programas}
@@ -122,8 +137,23 @@ Por fim, inicialize o servidor \Nagios\ no host local:
 Agora o \Nagios\ deve estar acessível pela interface web, onde é possível analisar os dados que
 ele coleta a partir das suas configurações padrão.
 
-%\subsection{Configuração do \Nagios}
 
+\subsection{Configuração do \Nagios}
+
+Para que o \Nagios\ detecte corretamente um ataque DDoS do \trinoo\ é necessário adicionar as
+seguintes linhas ao arquivo \emph{/etc/nagios3/conf.d/localhost\_nagios2.cfg}:
+
+\cbox{
+define service\{
+        use                    generic-service
+        host\_name             localhost
+        service\_description   UDP
+        check\_command         check\_udp!22
+        \}
+}
+
+Desta forma, quando um ataque DDoS estiver em execução, o \Nagios\ irá acusar falha no serviço,
+aumento de latência e/ou perda de pacotes.
 
 
 \subsection{Instalação do \trinoo}
@@ -150,6 +180,32 @@ na máquina cujo IP foi informado ao cliente no código-fonte.
 
 \section{Experimentos}\label{sec:experimentos}
 
+Serão configurados 5 computadores. O primeiro estará executando o \Nagios\ e será atacado pelos
+outros. O segundo irá executar o mestre do ataque, controlando o ataque dos zumbis. Todos os
+computadores terão clientes \trinoo\ sendo executados e com acesso ao alvo.
+
+Então cada zumbi terá de ser iniciado executando o cliente \trinoo\ no computador:
+
+\cbox{\$\ client/client}
+
+Para se iniciar o \trinoo\ mestre:
+
+\cbox{\$\ master/master
+?? g0rave}
+
+Agora, no computador com o mestre, lance o ataque:
+
+\cbox{\$\ telnet <ip-do-mestre> 27665
+Trying 127.0.0.1...
+Connected to localhost.
+Escape character is '\^\ $]$'.
+betaalmostdone
+mtimer <tempo-do-ataque>
+dos <ip-do-alvo>
+}
+
+Neste momento os zumbis devem começar o ataque ao IP do alvo, o que deve ser identificado através
+do monitoramento do \Nagios.
 
 
 \section{Conclusões}
@@ -165,7 +221,10 @@ ataques DDoS a um determinado alvo ao comando de um mestre. Esse ataque foi orqu
 tentar desestabilizar os serviços do host-alvo, o que foi detectado através do \Nagios.
 
 Com este trabalho o grupo teve a oportunidade de aprender a usar uma ferramenta de Gerenciamento
-de Redes de Computadores, adquirindo novos conhecimentos.
+de Redes de Computadores, adquirindo novos conhecimentos. Contudo, por falta de tempo a prática
+ficou restrita ao planejamento, que foi efetuado com sucesso e em detalhes. A execução dos planos,
+portanto, não foi feita para comparar os resultados esperados com os reais. Mesmo assim acreditamos
+que muito foi aprendido através deste trabalho.
 
 
 \section{Referências}
