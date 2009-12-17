@@ -1,0 +1,183 @@
+\documentclass[10pt,a4paper]{article}
+
+\usepackage[brazil]{babel}
+\usepackage[T1]{fontenc}
+\usepackage[utf8]{inputenc}
+\usepackage{ae}
+\usepackage{hyperref}
+\usepackage{alltt}
+
+\newcommand{\Nagios}{\textit{Nagios}}
+\newcommand{\trinoo}{\textit{trinoo}}
+\newcommand{\cbox}[1]
+{
+	\setlength\fboxrule{1pt}
+	\begin{alltt}\fbox{#1}\end{alltt}
+	\setlength\fboxrule{0.5pt}
+}
+
+\title{Segundo Trabalho de Administração e Gerenciamento de Redes\\---\\Relatório sobre o sistema \Nagios}
+\author{
+\begin{tabular}{lcr}
+Arthur F. M. Nascimento & -- & 5634455\\
+Karen H. Taga & -- & 5634688\\
+Lucas F. Rosada & -- & 5634584\\
+\end{tabular}}
+
+
+\begin{document}
+
+\maketitle
+
+\tableofcontents
+
+
+\section{Introdução}
+
+O objetivo deste trabalho é estudar as funcionalidades de um Sistema de Gerenciamento de Redes de
+Computadores. Compreende também a execução de uma ferramenta de ataque DDoS. Deve haver dois
+oponentes e um ataque deve ser proferido de uma Vlan para outra Vlan. A idéia consiste em os
+oponentes utilizarem o sistema de gerenciamento de redes e o protocolo SNMP para detectar o ataque
+e então tentar contê-lo. (Excerto extraído da especificação do trabalho.)
+
+A proposta do nosso grupo é usar o \Nagios, um Sistema de Gerenciamento de Redes de Computadores
+conhecido, para monitorar os acessos a um host e mantê-lo seguro e seus serviços em funcionamento
+apesar da carga da rede e do sistema.
+
+Para simular o caso extremo de carga da rede alta devido ao uso normal ou ataques explícitos do
+tipo DDoS, usaremos o \trinoo, que é um software malicioso desenvolvido com o intuito de executar
+tais ataques.
+
+\subsection{Sobre o \Nagios}
+
+O programa \Nagios\ é um sistema de monitoramento de redes que auxilia a coleta de informações sobre
+um computador ou uma rede de computadores. Ele permite que as organizações identifiquem e resolvam
+problemas de infraestrutura de TI antes que eles gerem consequências negativas.
+
+Dentre as facilidades que o \Nagios\ proporciona, estão incluídas:
+\begin{description}
+	\item[Monitoramento] de componentes da infraestrutura da rede, incluindo métricas de
+	sistema, protocolos de rede, aplicações, serviços, servidores e topologia da rede;
+	\item[Alertas] quando componentes da rede falham ou se recuperam, provendo informações sobre
+	esses eventos importantes; entre outras.
+\end{description}
+
+
+\subsection{Sobre o \trinoo}
+
+O \trinoo\ é um conjunto de programas cuja função é estabelecer um ataque DDoS. Ele não é um
+vírus, mas uma ferramenta de ataque disponibilizada em Dezembro de 1999 e que já foi associada a
+vários ataques conhecidos.
+
+O componente cliente do \trinoo\ é aquele que realiza o ataque. O cliente é normalmente instalado no
+computador infectado ou em um zumbi ou em qualquer outro lugar na internet. O componente cliente é
+capaz de enviar muitos pacotes UDP para o computador alvo, que tenta processar e responder a estes
+pacotes inválidos com mensagens "porta ICMP não-alcançável" para cada pacote UDP recebido. Por essa
+razão ele logo ocupa toda a sua banda para isso, o que resulta em um DoS (\emph{Denial of Service}),
+já que o computador fica sem comunicação com outros.
+
+O \trinoo\ também tem um componente mestre que é usado para controlar o componente cliente. Isso
+permite que o atacante controle múltiplos clientes remotamente através de alguns comandos simples.
+
+
+%\subsection{Conceitos}
+
+%TODO: escrever mais aqui sobre: UDP SNMP DDoS Vlan
+
+
+\section{Instalação e Configuração dos programas}
+
+\subsection{Instalação do \Nagios}
+
+O processo de instalação será explicado com base na plataforma Linux, especificamente Debian e
+distribuições derivadas para simplificar a explicação. Para instalar em outros sistemas, consulte
+a documentação oficial do \Nagios.
+
+Os pacotes necessários são: nagios3, apache2 e as dependências que eles possam precisar. Para
+instalá-los, execute:
+
+\cbox{\$\ sudo apt-get install nagios3 apache2}
+
+Este comando deve pedir a senha de superusuário para iniciar o instalador e depois deve perguntar
+ao usuário qual senha ele deseja que seja associada ao administrador do \Nagios\ (nagiosadmin).
+
+Depois de instalar o \Nagios, certifique-se de que a interface web que ele disponibiliza está
+disponível através do navegador acessando \url{http://localhost/nagios3/}. Se não for possível
+acessá-la, será necessário conferir o estado do servidor Apache e do servidor \Nagios. Além
+disso também precisamos informar ao Apache sobre as configurações da interface web do \Nagios.
+Os passos são os seguintes:
+
+Assegure-se de que o Apache tem as informações necessárias sobre a interface do \Nagios:
+
+\cbox{\$\ sudo echo 'Include /etc/nagios3/apache2.conf' $>>$/etc/apache2/apache2.conf}
+
+Agora inicialize o servidor Apache (ou reinicialeze-o, caso já esteja em execução):
+
+\cbox{\$\ sudo /etc/init.d/apache2 start}
+
+Por fim, inicialize o servidor \Nagios\ no host local:
+
+\cbox{\$\ sudo /etc/init.d/nagios3 start}
+
+Agora o \Nagios\ deve estar acessível pela interface web, onde é possível analisar os dados que
+ele coleta a partir das suas configurações padrão.
+
+%\subsection{Configuração do \Nagios}
+
+
+
+\subsection{Instalação do \trinoo}
+
+Como o software foi desenvolvido dez anos atrás, o ambiente de compilação mudou muito e são
+necessárias alguns conserto e alterações para que ele seja compilado com sucesso em todo Linux
+atual. Essas alterações já foram feitas e o código melhorado está disponível publicamente no
+\href{git://github.com/tureba/trinoo.git}{GitHub.org} atráves do \emph{git} (um sistema de
+controle de versão distribuído).
+
+Após o download do \trinoo, é necessário configurar os IPs de um ou mais mestres para os quais
+os clientes irão responder. Eles precisam ser definidos na estrutura \emph{master} da linha 22
+do arquivo \emph{client/client.c}.
+
+Então compile o \trinoo\ com:
+
+\cbox{\$\ make -s}
+
+Neste momento o cliente foi criado e é o arquivo \emph{client/client}. O mestre é o arquivo
+\emph{master/master}. Agora que o \trinoo\ foi compilado é necessário executá-lo. O cliente
+precisa ser espalhado por máquinas que se deseja infectar, enquanto que o mestre será executado
+na máquina cujo IP foi informado ao cliente no código-fonte.
+
+
+\section{Experimentos}\label{sec:experimentos}
+
+
+
+\section{Conclusões}
+
+Através dos experimentos da Seção \ref{sec:experimentos} pudemos simular uma pequena rede de
+computadores zumbis executando um ataque coordenado do tipo DDoS em um host. O host estava sendo
+monitorado através do programa \Nagios\ de forma a fornecer informações de desempenho, carga no
+sistema e possíveis falhas no serviço, que são úteis para tarefas gerenciais, administrativas,
+de segurança e de escalabilidade.
+
+Os zumbis foram criados usando o programa \trinoo, que é um software malicioso criado para gerar
+ataques DDoS a um determinado alvo ao comando de um mestre. Esse ataque foi orquestrado para
+tentar desestabilizar os serviços do host-alvo, o que foi detectado através do \Nagios.
+
+Com este trabalho o grupo teve a oportunidade de aprender a usar uma ferramenta de Gerenciamento
+de Redes de Computadores, adquirindo novos conhecimentos.
+
+
+\section{Referências}
+
+\begin{itemize}
+	\item \href{http://www.nagios.org/}{Site do Nagios}
+	\item \href{http://www.nagios.org/documentation/}{Site da documentação do Nagios}
+	\item \href{http://nagios.sourceforge.net/docs/nagios-3.pdf}{Documentação do Nagios 3 (PDF)}
+	\item \href{http://wiki.nagios.org/index.php/Main\_Page}{Wiki do Nagios}
+	\item \href{http://en.wikipedia.org/wiki/Nagios}{Wikipedia: Nagios}
+	\item \href{http://en.wikipedia.org/wiki/Trinoo}{Wikipedia: Trinoo}
+	\item \href{http://service1.symantec.com/sarc/sarc.nsf/html/W32.DoS.Trinoo.html}{\trinoo\ no site da Symantec}
+\end{itemize}
+
+\end{document}
